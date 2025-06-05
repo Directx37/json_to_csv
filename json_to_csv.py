@@ -1,22 +1,29 @@
 import json
 import csv
 
-# Ścieżki do plików
-input_json_file = 'dane.json'
-output_csv_file = 'dane.csv'
+input_file = 'dane.json'
+output_file = 'dane.csv'
 
-# Wczytaj dane JSON
-with open(input_json_file, 'r', encoding='utf-8') as f:
-    data = json.load(f)
+with open(input_file, 'r', encoding='utf-8') as f:
+    raw_data = json.load(f)
 
-# Sprawdź, czy dane to lista słowników
-if isinstance(data, dict):
-    data = [data]
+item = raw_data['item']
+output_row = {}
 
-# Zapisz dane do CSV
-with open(output_csv_file, 'w', newline='', encoding='utf-8') as f:
-    writer = csv.DictWriter(f, fieldnames=data[0].keys())
+# Parsujemy item1
+for entry in item.get('item1', []):
+    key, value = entry.split(':', 1)
+    output_row[f'item1_{key}'] = value
+
+# Dodajemy pozostałe pola (np. name2, name3)
+for k, v in item.items():
+    if k != 'item1':
+        output_row[k] = v
+
+# Zapis do CSV
+with open(output_file, 'w', newline='', encoding='utf-8') as csvfile:
+    writer = csv.DictWriter(csvfile, fieldnames=output_row.keys())
     writer.writeheader()
-    writer.writerows(data)
+    writer.writerow(output_row)
 
-print(f"Zapisano {len(data)} rekordów do {output_csv_file}")
+print(f'Zapisano dane do {output_file}')
