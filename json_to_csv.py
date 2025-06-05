@@ -7,23 +7,34 @@ output_file = 'dane.csv'
 with open(input_file, 'r', encoding='utf-8') as f:
     raw_data = json.load(f)
 
-item = raw_data['item']
-output_row = {}
+items = raw_data['items']
+rows = []
 
-# Parsujemy item1
-for entry in item.get('item1', []):
-    key, value = entry.split(':', 1)
-    output_row[f'item1_{key}'] = value
+# Przetwarzamy każdy obiekt
+for item in items:
+    row = {}
+    
+    # Rozbij item1
+    for entry in item.get('item1', []):
+        key, value = entry.split(':', 1)
+        row[f'item1_{key}'] = value
 
-# Dodajemy pozostałe pola (np. name2, name3)
-for k, v in item.items():
-    if k != 'item1':
-        output_row[k] = v
+    # Dodaj pozostałe pola
+    for k, v in item.items():
+        if k != 'item1':
+            row[k] = v
 
-# Zapis do CSV
-with open(output_file, 'w', newline='', encoding='utf-8') as csvfile:
-    writer = csv.DictWriter(csvfile, fieldnames=output_row.keys())
+    rows.append(row)
+
+# Zbierz wszystkie możliwe nagłówki
+all_keys = set()
+for row in rows:
+    all_keys.update(row.keys())
+
+# Zapisz do CSV
+with open(output_file, 'w', newline='', encoding='utf-8') as f:
+    writer = csv.DictWriter(f, fieldnames=sorted(all_keys))
     writer.writeheader()
-    writer.writerow(output_row)
+    writer.writerows(rows)
 
-print(f'Zapisano dane do {output_file}')
+print(f"Zapisano {len(rows)} rekordów do {output_file}")
